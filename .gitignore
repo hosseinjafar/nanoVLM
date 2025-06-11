@@ -27,3 +27,5 @@ notebooks/
 *.slurm
 
 benchmark_results.json
+
+.vscode/

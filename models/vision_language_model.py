@@ -41,11 +41,27 @@ class VisionLanguageModel(nn.Module):
         """
         # Clone the original embeddings to avoid in-place issues
         updated_token_embd = token_embd.clone()
-
-        # Build a mask of all image-token positions: shape [B, T_seq]
+    
+        # Build mask and check if any image tokens exist
         mask = (input_ids == self.tokenizer.image_token_id)
-        updated_token_embd[mask] = image_embd.view(-1, image_embd.size(-1)).to(updated_token_embd.dtype) # torch flattens before assigning
-
+        num_img_tokens = mask.sum().item()
+        
+        print(f"Found {num_img_tokens} image tokens")
+        print(f"Image embeddings shape: {image_embd.shape}")
+        
+        if num_img_tokens == 0:
+            print("Warning: No image tokens found in input_ids")
+            return updated_token_embd
+        
+        # Ensure dimensions match
+        flattened_img_embd = image_embd.view(-1, image_embd.size(-1))
+        expected_tokens = flattened_img_embd.shape[0]
+        
+        if num_img_tokens != expected_tokens:
+            raise ValueError(f"Mismatch: {num_img_tokens} image tokens found, "
+                            f"but {expected_tokens} image embeddings provided")
+        
+        updated_token_embd[mask] = flattened_img_embd.to(updated_token_embd.dtype)
         return updated_token_embd
 
     def forward(self, input_ids, image, attention_mask=None, targets=None):

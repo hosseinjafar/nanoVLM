@@ -77,7 +77,7 @@ class VQACollator(BaseCollator):  # Visual Question Answering Collator
 
         # Create labels where only answer tokens are predicted
         labels = batch_input_ids.clone().masked_fill(~loss_masks, -100)
-        labels[:, :-1] = labels[:, 1:] # Shift labels for causal LM
+        labels[:, :-1] = labels[:, 1:].clone() # Shift labels for causal LM
         labels[:, -1] = -100 # Last token has no target
 
         return {

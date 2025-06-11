@@ -3,3 +3,7 @@ gcsfs
 datasets==3.5.0
 tqdm
 huggingface_hub
+ipywidgets
+matplotlib
+transformers
+torchvision
