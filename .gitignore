@@ -14,6 +14,7 @@ wheels/
 wandb/
 logs/
 *.csv
+env_nvlm
 
 .python-version
 pyproject.toml
