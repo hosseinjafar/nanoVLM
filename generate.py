@@ -34,6 +34,9 @@ def parse_args():
 
 def main():
     args = parse_args()
+    args.checkpoint = "./checkpoints"
+    args.image = "./assets/image.png"
+    args.prompt = "What is this?"
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
