@@ -1,6 +1,7 @@
 import argparse
 import torch
 from PIL import Image
+import os
 
 torch.manual_seed(0)
 if torch.cuda.is_available():
@@ -27,25 +28,25 @@ def parse_args():
                         help="Text prompt to feed the model")
     parser.add_argument("--generations", type=int, default=5,
                         help="Num. of outputs to generate")
-    parser.add_argument("--max_new_tokens", type=int, default=20,
+    parser.add_argument("--max_new_tokens", type=int, default=128,
                         help="Maximum number of tokens per output")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    args.checkpoint = "./checkpoints"
+    args.checkpoint = "pretrained"
     args.image = "./assets/image.png"
     args.prompt = "What is this?"
-
+    print("current directory:", os.getcwd())
     if torch.cuda.is_available():
         device = torch.device("cuda")
     elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         device = torch.device("mps")
     else:
         device = torch.device("cpu")
+    device = "cpu"
     print(f"Using device: {device}")
-
     source = args.checkpoint if args.checkpoint else args.hf_model
     print(f"Loading weights from: {source}")
     model = VisionLanguageModel.from_pretrained(source).to(device)
@@ -55,7 +56,8 @@ def main():
     image_processor = get_image_processor(model.cfg.vit_img_size)
 
     messages = [{"role": "user", "content": tokenizer.image_token * model.cfg.mp_image_token_length + args.prompt}]
-    encoded_prompt = tokenizer.apply_chat_template([messages], tokenize=True, add_generation_prompt=True)
+    encoded_prompt = tokenizer.apply_chat_template(
+        [messages], tokenize=True, add_generation_prompt=True)
     tokens = torch.tensor(encoded_prompt).to(device)
 
     img = Image.open(args.image).convert("RGB")
@@ -63,7 +65,7 @@ def main():
 
     print("\nInput:\n ", args.prompt, "\n\nOutputs:")
     for i in range(args.generations):
-        gen = model.generate(tokens, img_t, max_new_tokens=args.max_new_tokens)
+        gen = model.generate(tokens, img_t)
         out = tokenizer.batch_decode(gen, skip_special_tokens=True)[0]
         print(f"  >> Generation {i+1}: {out}")
 
