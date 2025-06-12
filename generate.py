@@ -19,7 +19,7 @@ def parse_args():
         help="Path to a local checkpoint (directory or safetensors/pth). If omitted, we pull from HF."
     )
     parser.add_argument(
-        "--hf_model", type=str, default="lusxvr/nanoVLM-450M",
+        "--hf_model", type=str, default="lusxvr/nanoVLM",
         help="HuggingFace repo ID to download from incase --checkpoint isnt set."
     )
     parser.add_argument("--image", type=str, default="assets/image.png",
