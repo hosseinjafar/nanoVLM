@@ -39,24 +39,33 @@ class VisionLanguageModel(nn.Module):
         from `image_embd`. Supports an arbitrary number of image-token placeholders per sample.
         The first example in the batch might have 2 images and the second none.
         """
-        # Clone the original embeddings to avoid in-place issues
+        # # Clone the original embeddings to avoid in-place issues
+        # updated_token_embd = token_embd.clone()
+
+        # # Build a mask of all image-token positions: shape [B, T_seq]
+        # mask = (input_ids == self.tokenizer.image_token_id)
+        # updated_token_embd[mask] = image_embd.view(-1, image_embd.size(-1)).to(updated_token_embd.dtype) # torch flattens before assigning
+
+        # return updated_token_embd
+
+        # # Clone the original embeddings to avoid in-place issues
         updated_token_embd = token_embd.clone()
-    
+
         # Build mask and check if any image tokens exist
         mask = (input_ids == self.tokenizer.image_token_id)
         num_img_tokens = mask.sum().item()
-        
+
         print(f"Found {num_img_tokens} image tokens")
         print(f"Image embeddings shape: {image_embd.shape}")
-        
+
         if num_img_tokens == 0:
             print("Warning: No image tokens found in input_ids")
             return updated_token_embd
-        
+
         # Ensure dimensions match
         flattened_img_embd = image_embd.view(-1, image_embd.size(-1))
         expected_tokens = flattened_img_embd.shape[0]
-        
+
         if num_img_tokens != expected_tokens:
             raise ValueError(f"Mismatch: {num_img_tokens} image tokens found, "
                             f"but {expected_tokens} image embeddings provided")
